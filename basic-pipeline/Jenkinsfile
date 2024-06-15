@@ -1,0 +1,15 @@
+pipeline {
+    // Configure agent to run build on
+    agent {
+        docker { image 'node:16-alpine' }
+    }
+
+    // Configure stages of build
+    stages {
+        stage('Test') {
+            steps {
+                sh 'node --version'
+            }
+        }
+    }
+}
