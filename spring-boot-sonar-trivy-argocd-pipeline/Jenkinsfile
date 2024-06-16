@@ -1,0 +1,29 @@
+pipeline {
+    // Configure global agent
+    agent {
+        docker { image 'abhishekf5/maven-abhishek-docker-agent:v1' }
+    }
+
+    // Define Build Stages
+    stages {
+        stage('Checkout Code') {
+            git url: 'https://github.com/iam-veeramalla/Jenkins-Zero-To-Hero.git',
+            branch: 'main'
+        }
+        stage('Build Artifacts') {
+            sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app \
+                && maven clean package'
+        }
+        stage('Code Quality Check') {
+            environment {
+                SONAR_URL = 'http://159.89.239.109:9000'
+            }
+            steps {
+                withCredentials([string(credentialsId: 'sonar-scanner', variables: 'SONAR_AUTH_TOKEN')]) {
+                    sh 'cd ava-maven-sonar-argocd-helm-k8s/spring-boot-app \
+                        && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
+                }
+            }
+        }
+    }
+}
