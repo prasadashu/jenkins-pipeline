@@ -1,7 +1,10 @@
 pipeline {
     // Configure global agent
     agent {
-        docker { image 'abhishekf5/maven-abhishek-docker-agent:v1' }
+        docker {
+            image 'maven:3.8.1-openjdk-17'
+            args '-v /var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner:/opt/sonar-scanner'
+        }
     }
 
     // Define Build Stages
@@ -21,11 +24,18 @@ pipeline {
         stage('Code Quality Check') {
             environment {
                 SONAR_URL = 'http://159.89.239.109:9000'
+                SONAR_HOME = '/opt/sonar-scanner'
             }
             steps {
-                withCredentials([string(credentialsId: 'sonar-scanner', variable: 'SONAR_AUTH_TOKEN')]) {
-                    sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app \
-                        && mvn sonar:sonar -Dsonar.login=$SONAR_AUTH_TOKEN -Dsonar.host.url=${SONAR_URL}'
+                withSonarQubeEnv('sonar-scanner') {
+                    withCredentials([string(credentialsId: 'sonar-scanner', variable: 'SONAR_AUTH_TOKEN')]) {
+                        script {
+                            sh "cd java-maven-sonar-argocd-helm-k8s/spring-boot-app \
+                            && $SONAR_HOME/bin/sonar-scanner -Dsonar.login=$SONAR_AUTH_TOKEN \
+                                -Dsonar.host.url=${SONAR_URL} \
+                                -Dsonar.projectKey=DevOps-CICD"
+                        }
+                    }
                 }
             }
         }
