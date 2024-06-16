@@ -7,12 +7,16 @@ pipeline {
     // Define Build Stages
     stages {
         stage('Checkout Code') {
-            git url: 'https://github.com/iam-veeramalla/Jenkins-Zero-To-Hero.git',
-            branch: 'main'
+            steps {
+                git url: 'https://github.com/iam-veeramalla/Jenkins-Zero-To-Hero.git',
+                    branch: 'main'
+            }
         }
         stage('Build Artifacts') {
-            sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app \
-                && maven clean package'
+            steps {
+                sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app \
+                    && maven clean package'
+            }
         }
         stage('Code Quality Check') {
             environment {
