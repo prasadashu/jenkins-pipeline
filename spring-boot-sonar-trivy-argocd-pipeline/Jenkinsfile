@@ -2,8 +2,11 @@ pipeline {
     // Configure global agent
     agent {
         docker {
-            image 'maven:3.8.1-openjdk-17'
-            args '-v /var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner:/opt/sonar-scanner'
+            image 'ashuprasaddocker/cicddevops:jenkins-agent'
+            args '--user root \
+                  -v /var/lib/jenkins/tools/hudson.plugins.sonar.SonarRunnerInstallation/sonar-scanner:/opt/sonar-scanner \
+                  -v /opt/trivy-results:/opt/trivy-results \
+                  -v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
 
@@ -36,6 +39,39 @@ pipeline {
                                 -Dsonar.projectKey=DevOps-CICD"
                         }
                     }
+                }
+            }
+        }
+        stage('Build Docker Image') {
+            environment {
+                DOCKER_IMAGE = "ashuprasaddocker/cicddevops:v${BUILD_NUMBER}"
+                REGISTRY_CREDENTIALS = credentials('docker-registry')
+            }
+            steps {
+                script {
+                    sh 'cd java-maven-sonar-argocd-helm-k8s/spring-boot-app && docker build -t ${DOCKER_IMAGE} .'
+                }
+            }
+        }
+        stage('Scan Docker Image') {
+            environment {
+                DOCKER_IMAGE = "ashuprasaddocker/cicddevops:v${BUILD_NUMBER}"
+                TRIVY_IMAGE = "aquasec/trivy:latest"
+            }
+            steps {
+                script {
+                    // Run Trivy scan and save the output to a JSON file
+                    sh """
+                    docker run --rm \
+                        -v /var/run/docker.sock:/var/run/docker.sock \
+                        -v /mnt/volume_nyc1_04/trivy-db:/root/.cache/trivy \
+                        ${TRIVY_IMAGE} image \
+                        --exit-code 1 \
+                        --severity HIGH,CRITICAL \
+                        --ignore-unfixed \
+                        --format json -o /root/.cache/trivy/results.json \
+                        ${DOCKER_IMAGE}
+                    """
                 }
             }
         }
