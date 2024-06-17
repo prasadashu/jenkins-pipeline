@@ -64,12 +64,13 @@ pipeline {
                     sh """
                     docker run --rm \
                         -v /var/run/docker.sock:/var/run/docker.sock \
+                        -v /mnt/volume_nyc1_04/trivy-results:/opt/trivy/trivy-results \
                         -v /mnt/volume_nyc1_04/trivy-db:/root/.cache/trivy \
                         ${TRIVY_IMAGE} image \
                         --exit-code 1 \
                         --severity HIGH,CRITICAL \
                         --ignore-unfixed \
-                        --format json -o /root/.cache/trivy/results.json \
+                        --format json -o /opt/trivy/trivy-results/results.json \
                         ${DOCKER_IMAGE}
                     """
                 }
