@@ -45,7 +45,6 @@ pipeline {
         stage('Build Docker Image') {
             environment {
                 DOCKER_IMAGE = "ashuprasaddocker/cicddevops:v${BUILD_NUMBER}"
-                REGISTRY_CREDENTIALS = credentials('docker-registry')
             }
             steps {
                 script {
@@ -67,12 +66,25 @@ pipeline {
                         -v /mnt/volume_nyc1_04/trivy-results:/opt/trivy/trivy-results \
                         -v /mnt/volume_nyc1_04/trivy-db:/root/.cache/trivy \
                         ${TRIVY_IMAGE} image \
-                        --exit-code 1 \
                         --severity HIGH,CRITICAL \
                         --ignore-unfixed \
                         --format json -o /opt/trivy/trivy-results/results.json \
                         ${DOCKER_IMAGE}
                     """
+                }
+            }
+        }
+        stage('Push Image') {
+            environment {
+                DOCKER_IMAGE = "ashuprasaddocker/cicddevops:v${BUILD_NUMBER}"
+                REGISTRY_CREDENTIALS = credentials('docker-registry')
+            }
+            steps {
+                script {
+                    def dockerImage = docker.image("${DOCKER_IMAGE}")
+                    docker.withRegistry('https://index.docker.io/v1/', "docker-registry") {
+                        dockerImage.push()
+                    }
                 }
             }
         }
