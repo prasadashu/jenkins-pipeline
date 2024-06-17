@@ -98,6 +98,7 @@ pipeline {
                     branch: 'main'
                 withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
                     sh """
+                        ls -lrt
                         git config user.email "some_email@mail.com"
                         git config user.name "Ashu Prasad"
                         sed -i "s/image_tag/${BUILD_NUMBER}/g" spring-boot-sonar-trivy-argocd-pipeline/k8-manifests/deployment.yml

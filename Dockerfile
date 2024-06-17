@@ -1,6 +1,12 @@
 # Use an official Debian-based image as the base image
 FROM debian:bullseye-slim
 
+# Install Git
+RUN apt-get update && \
+    apt-get install -y git && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
 # Install JDK
 RUN apt-get update && \
     apt-get install -y openjdk-17-jdk && \
@@ -29,4 +35,4 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # Verify installations
-RUN java -version && mvn -version && docker --version
+RUN java -version && mvn -version && docker --version && git --version
