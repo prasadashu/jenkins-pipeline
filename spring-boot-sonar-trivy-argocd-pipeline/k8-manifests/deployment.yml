@@ -16,6 +16,6 @@ spec:
         spec:
             containers:
                 - name: spring-boot-container
-                  image: ashuprasaddocker/cicddevops:v54
+                  image: ashuprasaddocker/cicddevops:v55
                   ports:
                     - containerPort: 8080
