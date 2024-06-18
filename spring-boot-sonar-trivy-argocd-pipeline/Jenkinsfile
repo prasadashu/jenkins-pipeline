@@ -96,14 +96,22 @@ pipeline {
             steps {
                 withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
                     sh """
+                        # Clone K8s manifest file
                         git clone https://github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git /var/lib/jenkins/workspace/test-pipeline/jenkins-pipeline
                         cd /var/lib/jenkins/workspace/test-pipeline/jenkins-pipeline
+
+                        # Setup git
                         git config user.email "some_email@mail.com"
                         git config user.name "Ashu Prasad"
-                        sed -i "s/image_tag/${BUILD_NUMBER}/g" spring-boot-sonar-trivy-argocd-pipeline/k8-manifests/deployment.yml
+
+                        # Update deployment manifest file and push to repo
+                        sed -i "s/cicddevops:v.*/cicddevops:v${BUILD_NUMBER}/g" spring-boot-sonar-trivy-argocd-pipeline/k8-manifests/deployment.yml
                         git add spring-boot-sonar-trivy-argocd-pipeline/k8-manifests/deployment.yml
                         git commit -m "deploy: Update deployment image to version ${BUILD_NUMBER}"
                         git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:main
+
+                        # Clean directory
+                        rm -rf /var/lib/jenkins/workspace/test-pipeline/jenkins-pipeline
                     """
                 }
             }
